@@ -1,13 +1,28 @@
-// 
-
-
 import React, { useEffect, useState } from 'react';
-import { BarChart3, Users, FileText, AlertTriangle } from 'lucide-react';
+import { BarChart3, AlertTriangle } from 'lucide-react';
 import axios from "axios";
+import { useTranslation } from 'react-i18next';
 
 function Dashboard() {
+  const { t } = useTranslation();
   // Ensure realstats is an object with default empty arrays
   const [realstats, setrealstats] = useState({ casesByVillage: [], casesByTheftType: [] });
+  const [crimeTypes, setCrimeTypes] = useState([]);
+  const [villages, setVillages] = useState([]);
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/api/crime-types`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+      .then(response => setCrimeTypes(response.data))
+      .catch(error => console.error("Error fetching crime types:", error));
+
+    axios.get(`http://localhost:5000/api/villages`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+      .then(response => setVillages(response.data))
+      .catch(error => console.error("Error fetching villages:", error));
+  }, []);
 
   useEffect(() => {
     const fetchStates = async () => {
@@ -26,43 +41,37 @@ function Dashboard() {
 
   let stats = [
     {
-      name: 'Total Cases',
-      value: realstats.totalCases || 0,
-      change: '',
-      icon: FileText,
-    },
-    {
-      name: 'Active Cases',
-      value: '12,454',
+      name: t('dashboard.totalAccused'),
+      value: realstats.totalCases || 1000,
       change: '',
       icon: AlertTriangle,
     },
     {
-      name: 'Cases Solved',
-      value: '59,443',
+      name: t('dashboard.policeStations'),
+      value: realstats.totalPoliceStation || 23,
       change: '',
-      icon: BarChart3,
+      icon: AlertTriangle,
     },
     {
-      name: 'Officers on Duty',
-      value: '245',
+      name: t('dashboard.divisions'),
+      value: realstats.totalDivisions || 16,
       change: '',
-      icon: Users,
-    },
+      icon: BarChart3,
+    }
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-          Dashboard
+          {t('dashboard.title')}
         </h2>
         <p className="mt-2 text-sm text-gray-500">
-          Overview of case management statistics and recent activities
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -93,7 +102,7 @@ function Dashboard() {
         <div className="rounded-lg bg-white shadow">
           <div className="p-6">
             <h3 className="text-base font-semibold leading-6 text-gray-900">
-              Cases By Village
+              {t('dashboard.accusedByPoliceStation')}
             </h3>
             <div className="mt-8 flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -102,10 +111,10 @@ function Dashboard() {
                     <thead>
                       <tr>
                         <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                          Village
+                          {t('dashboard.policeStation')}
                         </th>
                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Count
+                          {t('dashboard.count')}
                         </th>
                       </tr>
                     </thead>
@@ -114,7 +123,7 @@ function Dashboard() {
                         realstats.casesByVillage.map((user) => (
                           <tr key={user._id}>
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                              {user._id}
+                              {villages.find(d => d._id === user._id)?.name}
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {user.count}
@@ -124,7 +133,7 @@ function Dashboard() {
                       ) : (
                         <tr>
                           <td colSpan="2" className="text-center py-4 text-gray-500">
-                            No data available
+                            {t('dashboard.noData')}
                           </td>
                         </tr>
                       )}
@@ -140,7 +149,7 @@ function Dashboard() {
         <div className="rounded-lg bg-white shadow">
           <div className="p-6">
             <h3 className="text-base font-semibold leading-6 text-gray-900">
-              Cases By TheftType
+              {t('dashboard.accusedByCrimeType')}
             </h3>
             <div className="mt-8 flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -149,10 +158,10 @@ function Dashboard() {
                     <thead>
                       <tr>
                         <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
-                          TheftType
+                          {t('dashboard.crimeType')}
                         </th>
                         <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Count
+                          {t('dashboard.count')}
                         </th>
                       </tr>
                     </thead>
@@ -161,7 +170,7 @@ function Dashboard() {
                         realstats.casesByTheftType.map((user) => (
                           <tr key={user._id}>
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                              {user._id}
+                              {crimeTypes.find(d => d._id === user._id)?.name}
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                               {user.count}
@@ -171,7 +180,7 @@ function Dashboard() {
                       ) : (
                         <tr>
                           <td colSpan="2" className="text-center py-4 text-gray-500">
-                            No data available
+                            {t('dashboard.noData')}
                           </td>
                         </tr>
                       )}

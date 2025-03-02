@@ -2,10 +2,13 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useThemeStore } from '../store/theme';
 
 function Layout() {
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Sidebar />
       <div className="lg:pl-72">
         <Header />

@@ -8,27 +8,34 @@ import {
   UserCircle,
   Settings,
   LogOut,
-  Shield,
   Menu,
   X,
+  Database,
+  ClipboardList
 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import { cn } from '../lib/utils';
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Search Cases', href: '/search', icon: Search },
-  { name: 'New Case', href: '/case-form', icon: FileText, adminOnly: true },
-  { name: 'User Management', href: '/users', icon: Users, adminOnly: true },
-  { name: 'Profile', href: '/profile', icon: UserCircle },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
+import { useTranslation } from 'react-i18next';
+import { useThemeStore } from '../store/theme';
 
 function Sidebar() {
+  const { t } = useTranslation();
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+
+  const navigation = [
+    { name: t('sidebar.dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('sidebar.searchAccused'), href: '/search', icon: Search },
+    { name: t('sidebar.newAccused'), href: '/case-form', icon: FileText, adminOnly: true },
+    { name: t('sidebar.masterData'), href: '/master-data', icon: Database, adminOnly: true },
+    { name: t('sidebar.userManagement'), href: '/users', icon: Users, adminOnly: true },
+    { name: t('sidebar.logs'), href: '/logs', icon: ClipboardList, adminOnly: true },
+    { name: t('sidebar.profile'), href: '/profile', icon: UserCircle },
+    { name: t('sidebar.settings'), href: '/settings', icon: Settings },
+  ];
 
   const filteredNavigation = navigation.filter(
     (item) => !item.adminOnly || user?.role === 'admin'
@@ -39,11 +46,11 @@ function Sidebar() {
   };
 
   const sidebarContent = (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+    <div className={`flex grow flex-col gap-y-5 overflow-y-auto border-r ${isDarkMode ? 'border-gray-700 bg-dark-primary' : 'border-gray-200 bg-white'} px-6 pb-4`}>
       <div className="flex h-16 shrink-0 items-center">
-        <Shield className="h-8 w-8 text-blue-600" />
-        <span className="ml-4 text-lg font-semibold text-gray-900">
-          Police CMS
+        <img src="https://csn.mahapolice.gov.in/tempu.webp" className="h-8 w-8" alt="" />
+        <span className={`ml-4 text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {t('common.appName')}
         </span>
       </div>
       <nav className="flex flex-1 flex-col">
@@ -59,16 +66,24 @@ function Sidebar() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
                         location.pathname === item.href
-                          ? 'bg-gray-50 text-blue-600'
-                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50',
+                          ? isDarkMode 
+                            ? 'bg-dark-secondary text-blue-400'
+                            : 'bg-gray-50 text-blue-600'
+                          : isDarkMode
+                            ? 'text-gray-300 hover:text-blue-400 hover:bg-dark-secondary'
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50',
                         'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                       )}
                     >
                       <Icon
                         className={cn(
                           location.pathname === item.href
-                            ? 'text-blue-600'
-                            : 'text-gray-400 group-hover:text-blue-600',
+                            ? isDarkMode
+                              ? 'text-blue-400'
+                              : 'text-blue-600'
+                            : isDarkMode
+                              ? 'text-gray-400 group-hover:text-blue-400'
+                              : 'text-gray-400 group-hover:text-blue-600',
                           'h-6 w-6 shrink-0'
                         )}
                         aria-hidden="true"
@@ -83,13 +98,21 @@ function Sidebar() {
           <li className="mt-auto">
             <button
               onClick={() => logout()}
-              className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              className={`group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:bg-dark-secondary hover:text-blue-400' 
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+              }`}
             >
               <LogOut
-                className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-blue-600"
+                className={`h-6 w-6 shrink-0 ${
+                  isDarkMode 
+                    ? 'text-gray-400 group-hover:text-blue-400' 
+                    : 'text-gray-400 group-hover:text-blue-600'
+                }`}
                 aria-hidden="true"
               />
-              Logout
+              {t('sidebar.logout')}
             </button>
           </li>
         </ul>
@@ -103,7 +126,7 @@ function Sidebar() {
       <div className="fixed top-0 left-0 z-50 lg:hidden">
         <button
           onClick={toggleMobileMenu}
-          className="p-4 text-gray-600 hover:text-gray-900"
+          className={`p-4 ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
         >
           {isMobileMenuOpen ? (
             <X className="h-6 w-6" />
@@ -120,8 +143,8 @@ function Sidebar() {
           isMobileMenuOpen ? 'block' : 'hidden'
         )}
       >
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" />
-        <div className="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto bg-white">
+        <div className={`fixed inset-0 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-600'} bg-opacity-75`} />
+        <div className="fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto bg-white dark:bg-dark-primary">
           {sidebarContent}
         </div>
       </div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const [formData, setFormData] = useState({
@@ -18,14 +18,10 @@ function Login() {
     e.preventDefault();
     try {
       await login(formData.email, formData.password, formData.role);
-      // const res = await axios.post('http://localhost:5000/api/auth/login', formData);
-      // localStorage.setItem('token', res.data.token);
-      // localStorage.setItem('role', res.data.role);
-      toast.success('Login successful');
+      toast.success(t('auth.loginSuccess'));
       navigate('/');
     } catch (error) {
-      // toast.error('Invalid credentials');
-      toast.error(error.response.data.message || 'Login Failed');
+      toast.error(t('auth.loginFailed'));
     }
   };
 
@@ -33,11 +29,11 @@ function Login() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-            <Shield className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto flex items-center justify-center rounded-full bg-blue-100">
+            <img src="https://csn.mahapolice.gov.in/t.webp" />
           </div>
           <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-            Police Case Management System
+            {t('common.appName')}
           </h2>
         </div>
 
@@ -49,7 +45,7 @@ function Login() {
                   htmlFor="username"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Username
+                  {t('auth.username')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -71,7 +67,7 @@ function Login() {
                   htmlFor="password"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="mt-2">
                   <input
@@ -93,7 +89,7 @@ function Login() {
                   htmlFor="role"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Role
+                  {t('auth.role')}
                 </label>
                 <div className="mt-2">
                   <select
@@ -108,8 +104,8 @@ function Login() {
                     }
                     className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
                   >
-                    <option value="police">Police</option>
-                    <option value="admin">Admin</option>
+                    <option value="police">{t('auth.police')}</option>
+                    <option value="admin">{t('auth.admin')}</option>
                   </select>
                 </div>
               </div>
@@ -119,7 +115,7 @@ function Login() {
                   type="submit"
                   className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 >
-                  Sign in
+                  {t('auth.login')}
                 </button>
               </div>
             </form>
