@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { sampleUsers } from '../data/sampleData';
 import { useTranslation } from 'react-i18next';
 import axios from "axios";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface User {
   _id: string;
@@ -35,13 +36,13 @@ function UserManagement() {
   const [villages, setVillages] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/users`, {
+    axios.get(BACKEND_URL+`/api/users`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setUsers(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(`http://localhost:5000/api/villages`, {
+    axios.get(BACKEND_URL+`/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))
@@ -120,13 +121,13 @@ function UserManagement() {
 
       if (editingUser) {
         // Update existing user
-        // const response = await fetch(`http://localhost:5000/api/users/${editingUser._id}`, {
+        // const response = await fetch(BACKEND_URL+`/api/users/${editingUser._id}`, {
         //   method: 'PUT',
         //   body: formDataToSend,
         //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         // });
         const response = await axios.put(
-          `http://localhost:5000/api/users/${editingUser._id}`,
+          BACKEND_URL+`/api/users/${editingUser._id}`,
           formDataToSend,
           {
             headers: {
@@ -149,7 +150,7 @@ function UserManagement() {
         //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         // });
         const response = await axios.post(
-          "http://localhost:5000/api/users",
+          BACKEND_URL+"/api/users",
           formDataToSend,
           {
             headers: {
@@ -216,7 +217,7 @@ function UserManagement() {
 
   const handleDelete = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(BACKEND_URL+`/api/users/${userId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
@@ -422,7 +423,7 @@ function UserManagement() {
                 {users.map((user) => (
                   <tr key={user._id}>
                     <td className="py-4 pl-4 pr-3">
-                      <img src={"http://localhost:5000"+user.photo} alt={user.firstName} className="h-10 w-10 rounded-full object-cover" />
+                      <img src={BACKEND_URL+""+user.photo} alt={user.firstName} className="h-10 w-10 rounded-full object-cover" />
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                       {`${user.firstName} ${user.lastName}`}

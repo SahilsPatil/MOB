@@ -3,8 +3,9 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = BACKEND_URL+"/api";
 
 interface Division {
   _id: string;
@@ -95,25 +96,25 @@ function MasterData() {
       if (isAdding) {
         switch (activeTab) {
           case 'divisions':
-            res = await axios.post(`http://localhost:5000/api/divisions/`,
+            res = await axios.post(BACKEND_URL+`/api/divisions/`,
               { name: formData.name },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'policeStation':
-            res = await axios.post(`http://localhost:5000/api/villages/`,
+            res = await axios.post(BACKEND_URL+`/api/villages/`,
               { name: formData.name, divisionId: selectedDivision },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'crimeTypes':
-            res = await axios.post(`http://localhost:5000/api/crime-types/`,
+            res = await axios.post(BACKEND_URL+`/api/crime-types/`,
               { name: formData.name },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'subCrimeTypes':
-            res = await axios.post(`http://localhost:5000/api/sub-crime-types/`,
+            res = await axios.post(BACKEND_URL+`/api/sub-crime-types/`,
               { name: formData.name, crimeTypeId: selectedCrimeType },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
@@ -122,25 +123,25 @@ function MasterData() {
       } else if (editingItem) {
         switch (activeTab) {
           case 'divisions':
-            res = await axios.put(`http://localhost:5000/api/divisions/${editingItem._id}`,
+            res = await axios.put(BACKEND_URL+`/api/divisions/${editingItem._id}`,
               { name: formData.name },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'policeStation':
-            res = await axios.put(`http://localhost:5000/api/villages/${editingItem._id}`,
+            res = await axios.put(BACKEND_URL+`/api/villages/${editingItem._id}`,
               { name: formData.name, divisionId: selectedDivision },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'crimeTypes':
-            res = await axios.put(`http://localhost:5000/api/crime-types/${editingItem._id}`,
+            res = await axios.put(BACKEND_URL+`/api/crime-types/${editingItem._id}`,
               { name: formData.name },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
             break;
           case 'subCrimeTypes':
-            res = await axios.put(`http://localhost:5000/api/sub-crime-types/${editingItem._id}`,
+            res = await axios.put(BACKEND_URL+`/api/sub-crime-types/${editingItem._id}`,
               { name: formData.name, crimeTypeId: selectedCrimeType },
               { headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' } }
             );
@@ -157,28 +158,28 @@ function MasterData() {
       // Fetch updated list from API after adding/updating
       switch (activeTab) {
         case 'divisions':
-          const updatedDivisions = await axios.get(`http://localhost:5000/api/divisions/`, {
+          const updatedDivisions = await axios.get(BACKEND_URL+`/api/divisions/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setDivisions(updatedDivisions.data);
           break;
 
         case 'policeStation':
-          const updatedVillages = await axios.get(`http://localhost:5000/api/villages/`, {
+          const updatedVillages = await axios.get(BACKEND_URL+`/api/villages/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setVillages(updatedVillages.data);
           break;
 
         case 'crimeTypes':
-          const updatedCrimeTypes = await axios.get(`http://localhost:5000/api/crime-types/`, {
+          const updatedCrimeTypes = await axios.get(BACKEND_URL+`/api/crime-types/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setCrimeTypes(updatedCrimeTypes.data);
           break;
 
         case 'subCrimeTypes':
-          const updatedSubCrimeTypes = await axios.get(`http://localhost:5000/api/sub-crime-types/`, {
+          const updatedSubCrimeTypes = await axios.get(BACKEND_URL+`/api/sub-crime-types/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setSubCrimeTypes(updatedSubCrimeTypes.data);
@@ -199,22 +200,22 @@ function MasterData() {
 
       switch (activeTab) {
         case 'divisions':
-          res = await axios.delete(`http://localhost:5000/api/divisions/${id}`, {
+          res = await axios.delete(BACKEND_URL+`/api/divisions/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           break;
         case 'policeStation':
-          res = await axios.delete(`http://localhost:5000/api/villages/${id}`, {
+          res = await axios.delete(BACKEND_URL+`/api/villages/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           break;
         case 'crimeTypes':
-          res = await axios.delete(`http://localhost:5000/api/crime-types/${id}`, {
+          res = await axios.delete(BACKEND_URL+`/api/crime-types/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           break;
         case 'subCrimeTypes':
-          res = await axios.delete(`http://localhost:5000/api/sub-crime-types/${id}`, {
+          res = await axios.delete(BACKEND_URL+`/api/sub-crime-types/${id}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           break;
@@ -227,28 +228,28 @@ function MasterData() {
       // Fetch updated list from API after deletion
       switch (activeTab) {
         case 'divisions':
-          const updatedDivisions = await axios.get(`http://localhost:5000/api/divisions/`, {
+          const updatedDivisions = await axios.get(BACKEND_URL+`/api/divisions/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setDivisions(updatedDivisions.data);
           break;
 
         case 'policeStation':
-          const updatedVillages = await axios.get(`http://localhost:5000/api/villages/`, {
+          const updatedVillages = await axios.get(BACKEND_URL+`/api/villages/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setVillages(updatedVillages.data);
           break;
 
         case 'crimeTypes':
-          const updatedCrimeTypes = await axios.get(`http://localhost:5000/api/crime-types/`, {
+          const updatedCrimeTypes = await axios.get(BACKEND_URL+`/api/crime-types/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setCrimeTypes(updatedCrimeTypes.data);
           break;
 
         case 'subCrimeTypes':
-          const updatedSubCrimeTypes = await axios.get(`http://localhost:5000/api/sub-crime-types/`, {
+          const updatedSubCrimeTypes = await axios.get(BACKEND_URL+`/api/sub-crime-types/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setSubCrimeTypes(updatedSubCrimeTypes.data);

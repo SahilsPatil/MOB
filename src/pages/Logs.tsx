@@ -79,7 +79,7 @@
 //       if (filters.endDate) params.append('endDate', filters.endDate);
 //       if (filters.userId) params.append('userId', filters.userId);
 
-//       const response = await axios.get(`http://localhost:5000/api/logs?${params.toString()}`, {
+//       const response = await axios.get(BACKEND_URL+`/api/logs?${params.toString()}`, {
 //         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
 //       });
 
@@ -515,6 +515,7 @@ import { Calendar, Clock, Filter, Download, RefreshCw, Trash2 } from 'lucide-rea
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useThemeStore } from '../store/theme';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface Log {
   _id: string;
@@ -613,7 +614,7 @@ function Logs() {
       if (filters.endDate) params.append('endDate', filters.endDate);
       if (filters.userId) params.append('userId', filters.userId);
 
-      const response = await axios.get(`http://localhost:5000/api/logs?${params.toString()}`, {
+      const response = await axios.get(BACKEND_URL+`/api/logs?${params.toString()}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 

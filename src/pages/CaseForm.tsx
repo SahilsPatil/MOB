@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface CaseFormData {
   division: string;
@@ -40,25 +41,25 @@ function CaseForm() {
   const [subCrimeTypes, setSubCrimeTypes] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/divisions`, {
+    axios.get(BACKEND_URL+`/api/divisions`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setDivisions(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(`http://localhost:5000/api/crime-types`, {
+    axios.get(BACKEND_URL+`/api/crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCrimeTypes(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(`http://localhost:5000/api/villages`, {
+    axios.get(BACKEND_URL+`/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))
       .catch(error => console.error("Error fetching villages:", error));
 
-    axios.get(`http://localhost:5000/api/sub-crime-types`, {
+    axios.get(BACKEND_URL+`/api/sub-crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setSubCrimeTypes(response.data))
@@ -111,7 +112,7 @@ function CaseForm() {
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/cases",
+        BACKEND_URL+"/api/cases",
         formDataToSend,
         {
           headers: {

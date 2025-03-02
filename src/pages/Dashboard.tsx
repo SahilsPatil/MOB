@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BarChart3, AlertTriangle } from 'lucide-react';
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Dashboard() {
   const { t } = useTranslation();
@@ -11,13 +12,13 @@ function Dashboard() {
   const [villages, setVillages] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/crime-types`, {
+    axios.get(BACKEND_URL+`/api/crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCrimeTypes(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(`http://localhost:5000/api/villages`, {
+    axios.get(BACKEND_URL+`/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))
@@ -27,7 +28,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchStates = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/dashboard/stats`, {
+        const res = await axios.get(BACKEND_URL+`/api/dashboard/stats`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setrealstats(res.data || { casesByVillage: [], casesByTheftType: [] });

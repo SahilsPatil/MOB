@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Login() {
   const { t } = useTranslation();

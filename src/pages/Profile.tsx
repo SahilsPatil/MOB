@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useThemeStore } from '../store/theme';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface UserProfile {
   _id: string;
@@ -37,7 +38,7 @@ function Profile() {
   const [villages, setVillages] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/villages`, {
+    axios.get(BACKEND_URL+`/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))

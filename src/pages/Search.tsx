@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { useTranslation } from 'react-i18next';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface Case {
   _id: string;
@@ -44,31 +45,31 @@ function Search() {
   const [subCrimeTypes, setSubCrimeTypes] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/cases`, {
+    axios.get(BACKEND_URL+`/api/cases`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCases(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(`http://localhost:5000/api/divisions`, {
+    axios.get(BACKEND_URL+`/api/divisions`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setDivisions(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(`http://localhost:5000/api/crime-types`, {
+    axios.get(BACKEND_URL+`/api/crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCrimeTypes(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(`http://localhost:5000/api/villages`, {
+    axios.get(BACKEND_URL+`/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(`http://localhost:5000/api/sub-crime-types`, {
+    axios.get(BACKEND_URL+`/api/sub-crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setSubCrimeTypes(response.data))
@@ -221,7 +222,7 @@ function Search() {
   const handleEdit = (caseItem: Case) => {
     setEditingId(caseItem._id);
     setEditData({ ...caseItem });
-    setPreviewImage("http://localhost:5000" + caseItem.photo);
+    setPreviewImage(BACKEND_URL+"" + caseItem.photo);
   };
 
   const handleCancelEdit = () => {
@@ -233,7 +234,7 @@ function Search() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/api/cases/${id}`, {
+      const res = await axios.delete(BACKEND_URL+`/api/cases/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         }
@@ -270,7 +271,7 @@ function Search() {
       }
 
       const response = await axios.put(
-        `http://localhost:5000/api/cases/${id}`,
+        BACKEND_URL+`/api/cases/${id}`,
         formDataToSend,
         {
           headers: {
@@ -443,7 +444,7 @@ function Search() {
                           {previewImage && (
                             <div className="relative">
                               <img
-                                src={previewImage || `http://localhost:5000${caseItem.photo}`}
+                                src={previewImage || BACKEND_URL+`${caseItem.photo}`}
                                 alt="Case"
                                 className="h-10 w-10 rounded-full object-cover"
                               />
@@ -467,7 +468,7 @@ function Search() {
                       ) : (
                         caseItem.photo && (
                           <img
-                            src={"http://localhost:5000" + caseItem.photo}
+                            src={BACKEND_URL+"" + caseItem.photo}
                             alt="Case"
                             className="h-10 w-10 rounded-full object-cover"
                           />
