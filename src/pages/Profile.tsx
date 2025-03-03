@@ -48,7 +48,7 @@ function Profile() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/users/profile', {
+        const response = await axios.get(BACKEND_URL+'/api/users/profile', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         
@@ -92,9 +92,7 @@ function Profile() {
         } : {})
       };
 
-      const response = await axios.put(
-        'http://localhost:5000/api/users/profile',
-        updateData,
+      const response = await axios.put(BACKEND_URL+'/api/users/profile',updateData,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
