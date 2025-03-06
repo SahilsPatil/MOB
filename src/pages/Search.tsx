@@ -403,7 +403,7 @@ function Search() {
         image: { type: "jpeg", quality: 1 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      }).save()
+      })
       .outputPdf("blob")
       .then((pdfBlob) => {
         // Create Blob URL
@@ -433,6 +433,52 @@ function Search() {
     // })
     // .catch((err) => console.error("PDF Generation Error:", err));
   };
+
+
+
+  const exportToPrint = () => {
+    if (!modifiedHTML) return;
+
+    // Create a container for modified HTML + styles
+    const container = document.createElement("div");
+    container.innerHTML = modifiedHTML;
+    // container.style.display="none";
+    // document.body.appendChild(container);
+
+    // ✅ Ensure styles are copied from document
+    const styles = [...document.styleSheets]
+      .map((sheet) => {
+        try {
+          return [...sheet.cssRules].map((rule) => rule.cssText).join("\n");
+        } catch (e) {
+          return ""; // Handle CORS errors
+        }
+      })
+      .join("\n");
+
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = styles;
+    container.prepend(styleTag);
+
+
+    // Convert to PDF with correct colors
+    html2pdf()
+      .from(container)
+      .set({
+        margin: 10,
+        filename: "document.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      }).save()
+      .catch((err) => console.error("PDF Generation Error:", err));
+    // .save()
+    // .then(() => {
+    //   document.body.removeChild(container); // Cleanup
+    // })
+    // .catch((err) => console.error("PDF Generation Error:", err));
+  };
+
 
 
 
@@ -588,6 +634,13 @@ function Search() {
         <div className="flex space-x-4">
           <button
             onClick={exportToPDF}
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-300 to-blue-900 text-white rounded-md hover:from-blue-700 hover:to-blue-800 shadow-md transition-all duration-200"
+          >
+            <FileText className="h-5 w-5 mr-2" />
+            Print
+          </button>
+          <button
+            onClick={exportToPrint}
             className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-md hover:from-blue-700 hover:to-blue-800 shadow-md transition-all duration-200"
           >
             <FileText className="h-5 w-5 mr-2" />
