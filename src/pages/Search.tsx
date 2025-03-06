@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Search as SearchIcon, FileText, FileSpreadsheet, Download, X, Check, Edit, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import { sampleCases } from '../data/sampleData';
@@ -7,7 +7,20 @@ import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import fontkit from "@pdf-lib/fontkit";
+import mammoth from 'mammoth';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useTranslation } from 'react-i18next';
+import "regenerator-runtime/runtime";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+import docx4js from "docx4js";
+import * as docxPreview from "docx-preview";
+import html2pdf from "html2pdf.js";
+import Html from 'react-pdf-html';
+import html2canvas from "html2canvas";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 interface Case {
@@ -23,6 +36,11 @@ interface Case {
   photo: string;
   address: string;
 }
+
+// if (!pdfMake.vfs) {
+//   pdfMake.vfs = pdfFonts?.pdfMake?.vfs || {};
+//   pdfMake.vfs = { ...pdfFonts.pdfMake.vfs }; 
+// }
 
 function Search() {
   const { t } = useTranslation();
@@ -45,31 +63,31 @@ function Search() {
   const [subCrimeTypes, setSubCrimeTypes] = useState([]);
 
   useEffect(() => {
-    axios.get(BACKEND_URL+`/api/cases`, {
+    axios.get(BACKEND_URL + `/api/cases`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCases(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(BACKEND_URL+`/api/divisions`, {
+    axios.get(BACKEND_URL + `/api/divisions`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setDivisions(response.data))
       .catch(error => console.error("Error fetching divisions:", error));
 
-    axios.get(BACKEND_URL+`/api/crime-types`, {
+    axios.get(BACKEND_URL + `/api/crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setCrimeTypes(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(BACKEND_URL+`/api/villages`, {
+    axios.get(BACKEND_URL + `/api/villages`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setVillages(response.data))
       .catch(error => console.error("Error fetching crime types:", error));
 
-    axios.get(BACKEND_URL+`/api/sub-crime-types`, {
+    axios.get(BACKEND_URL + `/api/sub-crime-types`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => setSubCrimeTypes(response.data))
@@ -119,86 +137,315 @@ function Search() {
     setPreviewImage(null);
   };
 
+  // const exportToPDF = () => {
+  //   const doc = new jsPDF();
+
+  //   // Header Section
+  //   doc.setFontSize(12);
+  //   doc.text('Maharashtra Police', 14, 15);
+  //   doc.setFontSize(10);
+  //   doc.text('Local Crime Branch, Chhatrapati Sambhajinagar Rural', 14, 22);
+  //   doc.text('Office of Superintendent of Police, Chhatrapati Sambhajinagar Rural', 14, 28);
+  //   doc.text('T.C.K Center Road, Tilakdi, Pin-7, Chhatrapati Sambhajinagar', 14, 34);
+  //   doc.text('Phone Number: 0240-2380978', 14, 40);
+
+  //   doc.setFontSize(10);
+  //   doc.text('Ref No: LCB/MOB/2025/', 14, 50);
+  //   doc.text('/02/2025', 160, 50);
+
+  //   // Addressing
+  //   doc.setFontSize(12);
+  //   doc.text('To,', 14, 60);
+  //   doc.text('Station House Officer,', 14, 65);
+  //   doc.text('Police Station, Kannad City', 14, 70);
+
+  //   // Case Details
+  //   doc.setFontSize(10);
+  //   doc.text('FIR No & Section:', 14, 80);
+  //   doc.text('38/2025, Section 303(2)B IPC', 50, 80);
+
+  //   doc.text('Crime Type:', 14, 85);
+  //   doc.text('Murder with a sharp weapon in a hotel lobby', 50, 85);
+
+  //   doc.text('Investigating Officer:', 14, 90);
+  //   doc.text('PON/729 Bag, Main Post, Kannad City', 50, 90);
+
+  //   // Accused List Table
+  //   const tableColumn = ["Accused Name", "Age", "Address"];
+  //   const tableRows = filteredCases.map(caseItem => [
+  //       caseItem.name,
+  //       caseItem.age,
+  //       caseItem.address
+  //   ]);
+
+  //   doc.autoTable({
+  //       startY: 100,
+  //       head: [tableColumn],
+  //       body: tableRows,
+  //       theme: 'grid',
+  //       headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
+  //       styles: { fontSize: 10 }
+  //   });
+
+  //   // Investigation Instructions
+  //   let yPos = doc.lastAutoTable.finalY + 10;
+  //   doc.setFontSize(10);
+  //   doc.text('The above case is under investigation, and the list of suspected accused persons is provided below.', 14, yPos);
+  //   yPos += 5;
+  //   doc.text('Kindly proceed with the necessary investigation and submit a detailed report.', 14, yPos);
+
+  //   // Additional Instructions
+  //   const instructions = [
+  //       "1) Verify the crime details and provide an updated report.",
+  //       "2) Gather and submit information about the deceased person.",
+  //       "3) Visit the crime scene and collect relevant details.",
+  //       "4) Submit forensic evidence related to the crime.",
+  //       "5) Provide a certified copy of the A.O.B. format and photos."
+  //   ];
+
+  //   instructions.forEach((line, index) => {
+  //       yPos += 7;
+  //       doc.text(line, 14, yPos);
+  //   });
+
+  //   // Signature Area
+  //   yPos += 15;
+  //   doc.setFontSize(12);
+  //   doc.text('Superintendent of Police,', 140, yPos);
+  //   doc.text('Chhatrapati Sambhajinagar Rural', 140, yPos + 5);
+
+  //   // Save PDF
+  //   doc.save('police-report.pdf');
+  // };
+
+
+
+  // const exportToPDF = async () => {
+  //   const response = await fetch('/template.docx'); // Ensure template.docx is in the public folder
+  //   const content = await response.arrayBuffer();
+  //   const zip = new JSZip();
+  //   await zip.loadAsync(content);
+
+  //   const docXml = await zip.file("word/document.xml").async("text");
+  //   let updatedXml = docXml;
+
+  //   const accusedList = filteredCases.map(caseItem => `${caseItem.name}, ${caseItem.age}, ${caseItem.address}`).join("\n");
+
+  //   const replacements = {
+  //     "FIR_NO": "38/2025",
+  //     "CRIME_TYPE": "Murder with a sharp weapon in a hotel lobby",
+  //     "ACCUSED_LIST": accusedList
+  //   };
+
+  //   Object.keys(replacements).forEach(key => {
+  //     const regex = new RegExp(`{${key}}`, 'g');
+  //     updatedXml = updatedXml.replace(regex, replacements[key]);
+  //   });
+
+  //   zip.file("word/document.xml", updatedXml);
+  //   const updatedContent = await zip.generateAsync({ type: "blob" });
+  //   saveAs(updatedContent, "updated-report.docx");
+  // };
+
+  //   const exportToPDF = async () => {
+  //     const response = await fetch('/template.docx'); // Ensure template.docx is in the public folder
+  //     const content = await response.arrayBuffer();
+  //     const zip = new JSZip();
+  //     await zip.loadAsync(content);
+
+  //     const docXml = await zip.file("word/document.xml").async("text");
+  //     let updatedXml = docXml;
+
+  //     const accusedList = filteredCases.map(caseItem => `${caseItem.name}, ${caseItem.address}`).join("\n");
+
+  //     const replacements = {
+  //         "FIR_NO": "38/2025",
+  //         "CRIME_TYPE": "Murder with a sharp weapon in a hotel lobby",
+  //         "ACCUSED_LIST": accusedList
+  //     };
+
+  //     Object.keys(replacements).forEach(key => {
+  //         const regex = new RegExp(`{${key}}`, 'g');
+  //         updatedXml = updatedXml.replace(regex, replacements[key]);
+  //     });
+
+  //     // Extract text for PDF
+  //     const extractedText = updatedXml.replace(/<[^>]+>/g, ''); // Remove XML tags
+
+  //     // Create a PDF
+  //     const pdfDoc = await PDFDocument.create();
+  //     const page = pdfDoc.addPage([600, 800]);
+  //     const { width, height } = page.getSize();
+  //     const fontSize = 12;
+
+  //     let yPosition = height - 50;
+  //     extractedText.split('\n').forEach((line) => {
+  //         if (yPosition < 50) {
+  //             page.drawText("(Continued on next page...)", { x: 50, y: yPosition, size: fontSize, color: rgb(1, 0, 0) });
+  //             yPosition = height - 50;
+  //         }
+  //         page.drawText(line, { x: 50, y: yPosition, size: fontSize, color: rgb(0, 0, 0) });
+  //         yPosition -= 15;
+  //     });
+
+  //     const pdfBytes = await pdfDoc.save();
+  //     const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+  //     saveAs(pdfBlob, "updated-report.pdf");
+  // };
+
+
+
+
+
+
+  // const containerRef = useRef<HTMLDivElement | null>(null);
+  // const [docxLoaded, setDocxLoaded] = useState(false);
+
+  // useEffect(() => {
+  //   if (!containerRef.current) {
+  //     console.warn("Container is null! Waiting for it to be available...");
+  //     return;
+  //   }
+
+  //   fetch("template.docx") // Replace with actual DOCX path
+  //     .then((res) => {
+  //       if (!res.ok) throw new Error(`Failed to fetch DOCX: ${res.statusText}`);
+  //       console.log("DOCX fetched successfully.");
+  //       return res.blob();
+  //     })
+  //     .then((blob) => {
+  //       docxPreview
+  //         .renderAsync(blob, containerRef.current)
+  //         .then(() => {
+  //           console.log("DOCX rendered successfully.");
+  //           setDocxLoaded(true);
+  //         })
+  //         .catch((err) => console.error("DOCX Rendering Error:", err));
+  //     })
+  //     .catch((err) => console.error("Error loading DOCX:", err));
+  // }, [containerRef]); // ✅ Make effect dependent on `containerRef`
+
+
+
+
+
+  // const exportToPDF = () => {
+  //   if (!docxLoaded) return alert("DOCX not loaded yet!");
+
+  //   html2pdf()
+  //     .set({ filename: "converted.pdf" })
+  //     .from(containerRef.current)
+  //     .save();
+  // };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const [modifiedHTML, setModifiedHTML] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/template.htm") // Replace with actual file path
+      .then((res) => res.text())
+      .then((text) => {
+
+        const accusedList = filteredCases.map((caseItem,index) => `<p class="MsoNormal" style="margin-left:53.5pt;margin-bottom:0"><span lang="EN-US" style="mso-bidi-language:MR">${index+1}] ${caseItem.name}, ${caseItem.address}</span></p>`).join("\n");
+
+        const updatedText = text.replace(/{{names}}/g, accusedList);
+
+        setModifiedHTML(updatedText);
+      })
+      .catch((err) => console.error("Failed to load HTML:", err));
+  }, [filteredCases]);
+
   const exportToPDF = () => {
-    const doc = new jsPDF();
+    if (!modifiedHTML) return;
 
-    // Header Section
-    doc.setFontSize(12);
-    doc.text('Maharashtra Police', 14, 15);
-    doc.setFontSize(10);
-    doc.text('Local Crime Branch, Chhatrapati Sambhajinagar Rural', 14, 22);
-    doc.text('Office of Superintendent of Police, Chhatrapati Sambhajinagar Rural', 14, 28);
-    doc.text('T.C.K Center Road, Tilakdi, Pin-7, Chhatrapati Sambhajinagar', 14, 34);
-    doc.text('Phone Number: 0240-2380978', 14, 40);
+    // Create a container for modified HTML + styles
+    const container = document.createElement("div");
+    container.innerHTML = modifiedHTML;
+    // container.style.display="none";
+    // document.body.appendChild(container);
 
-    doc.setFontSize(10);
-    doc.text('Ref No: LCB/MOB/2025/', 14, 50);
-    doc.text('/02/2025', 160, 50);
+    // ✅ Ensure styles are copied from document
+    const styles = [...document.styleSheets]
+      .map((sheet) => {
+        try {
+          return [...sheet.cssRules].map((rule) => rule.cssText).join("\n");
+        } catch (e) {
+          return ""; // Handle CORS errors
+        }
+      })
+      .join("\n");
 
-    // Addressing
-    doc.setFontSize(12);
-    doc.text('To,', 14, 60);
-    doc.text('Station House Officer,', 14, 65);
-    doc.text('Police Station, Kannad City', 14, 70);
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = styles;
+    container.prepend(styleTag);
 
-    // Case Details
-    doc.setFontSize(10);
-    doc.text('FIR No & Section:', 14, 80);
-    doc.text('38/2025, Section 303(2)B IPC', 50, 80);
-    
-    doc.text('Crime Type:', 14, 85);
-    doc.text('Murder with a sharp weapon in a hotel lobby', 50, 85);
 
-    doc.text('Investigating Officer:', 14, 90);
-    doc.text('PON/729 Bag, Main Post, Kannad City', 50, 90);
+    // Convert to PDF with correct colors
+    html2pdf()
+      .from(container)
+      .set({
+        margin: 10,
+        filename: "document.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      }).save()
+      .outputPdf("blob")
+      .then((pdfBlob) => {
+        // Create Blob URL
+        const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    // Accused List Table
-    const tableColumn = ["Accused Name", "Age", "Address"];
-    const tableRows = filteredCases.map(caseItem => [
-        caseItem.name,
-        caseItem.age,
-        caseItem.address
-    ]);
+        // Open Print Dialog directly
+        const printIframe = document.createElement("iframe")
+        printIframe.style.position = "fixed"; // Fixed position to prevent layout issues
+        printIframe.style.top = "-9999px"; // Completely hide off-screen
+        printIframe.style.left = "-9999px";
+        printIframe.style.width = "0"; // Minimize size
+        printIframe.style.height = "0"; // Hide it
+        printIframe.src = pdfUrl;
+        document.body.appendChild(printIframe);
 
-    doc.autoTable({
-        startY: 100,
-        head: [tableColumn],
-        body: tableRows,
-        theme: 'grid',
-        headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
-        styles: { fontSize: 10 }
-    });
-
-    // Investigation Instructions
-    let yPos = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(10);
-    doc.text('The above case is under investigation, and the list of suspected accused persons is provided below.', 14, yPos);
-    yPos += 5;
-    doc.text('Kindly proceed with the necessary investigation and submit a detailed report.', 14, yPos);
-    
-    // Additional Instructions
-    const instructions = [
-        "1) Verify the crime details and provide an updated report.",
-        "2) Gather and submit information about the deceased person.",
-        "3) Visit the crime scene and collect relevant details.",
-        "4) Submit forensic evidence related to the crime.",
-        "5) Provide a certified copy of the A.O.B. format and photos."
-    ];
-
-    instructions.forEach((line, index) => {
-        yPos += 7;
-        doc.text(line, 14, yPos);
-    });
-
-    // Signature Area
-    yPos += 15;
-    doc.setFontSize(12);
-    doc.text('Superintendent of Police,', 140, yPos);
-    doc.text('Chhatrapati Sambhajinagar Rural', 140, yPos + 5);
-
-    // Save PDF
-    doc.save('police-report.pdf');
+        printIframe.onload = () => {
+          printIframe.contentWindow?.print();
+          // setTimeout(() => {
+          //   document.body.removeChild(printIframe); // Cleanup after printing
+          // }, 2000);
+        };
+      })
+      .catch((err) => console.error("PDF Generation Error:", err));
+    // .save()
+    // .then(() => {
+    //   document.body.removeChild(container); // Cleanup
+    // })
+    // .catch((err) => console.error("PDF Generation Error:", err));
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const exportToExcel = () => {
     const data = filteredCases.map(caseItem => ({
@@ -222,7 +469,7 @@ function Search() {
   const handleEdit = (caseItem: Case) => {
     setEditingId(caseItem._id);
     setEditData({ ...caseItem });
-    setPreviewImage(BACKEND_URL+"" + caseItem.photo);
+    setPreviewImage(BACKEND_URL + "" + caseItem.photo);
   };
 
   const handleCancelEdit = () => {
@@ -234,7 +481,7 @@ function Search() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await axios.delete(BACKEND_URL+`/api/cases/${id}`, {
+      const res = await axios.delete(BACKEND_URL + `/api/cases/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         }
@@ -271,7 +518,7 @@ function Search() {
       }
 
       const response = await axios.put(
-        BACKEND_URL+`/api/cases/${id}`,
+        BACKEND_URL + `/api/cases/${id}`,
         formDataToSend,
         {
           headers: {
@@ -301,6 +548,34 @@ function Search() {
 
   return (
     <div className="space-y-6">
+      {/* <div>
+        <h2>Document Preview</h2>
+        <div ref={containerRef} style={{ border: "1px solid black", padding: "10px" }} />
+        {!docxLoaded && <p>Loading DOCX...</p>}
+      </div> */}
+      {/* <div>
+        <h2>Preview Modified Document</h2>
+        {blobUrl ? (
+          <>
+            <iframe src={blobUrl} width="100%" height="600px" />
+            <button onClick={exportToPDF}>Download as PDF</button>
+          </>
+        ) : (
+          <p>Loading and modifying document...</p>
+        )}
+      </div> */}
+      {/* <div>
+        <h2>Preview & Export PDF</h2>
+        {modifiedHTML ? (
+          <>
+            <button onClick={exportToPDF}>Download PDF</button>
+            <div dangerouslySetInnerHTML={{ __html: modifiedHTML }} />
+          </>
+        ) : (
+          <p>Loading and modifying document...</p>
+        )}
+      </div> */}
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
@@ -444,7 +719,7 @@ function Search() {
                           {previewImage && (
                             <div className="relative">
                               <img
-                                src={previewImage || BACKEND_URL+`${caseItem.photo}`}
+                                src={previewImage || BACKEND_URL + `${caseItem.photo}`}
                                 alt="Case"
                                 className="h-10 w-10 rounded-full object-cover"
                               />
@@ -468,7 +743,7 @@ function Search() {
                       ) : (
                         caseItem.photo && (
                           <img
-                            src={BACKEND_URL+"" + caseItem.photo}
+                            src={BACKEND_URL + "" + caseItem.photo}
                             alt="Case"
                             className="h-10 w-10 rounded-full object-cover"
                           />
