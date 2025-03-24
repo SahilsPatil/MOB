@@ -363,7 +363,9 @@ function Search() {
         const accusedList = filteredCases.map((caseItem,index) => `<p class="MsoNormal" style="margin-left:53.5pt;margin-bottom:0"><span lang="EN-US" style="mso-bidi-language:MR">${index+1}] ${caseItem.name}, ${caseItem.address}</span></p>`).join("\n");
 
         // const updatedText = text.replace(/{{names}}/g, accusedList);
-         const updatedText = text.replace(/{{names}}/g, accusedList).replace(/{{station}}/g,selectedVillage);
+         // const updatedText = text.replace(/{{names}}/g, accusedList).replace(/{{station}}/g,selectedVillage);
+        const policeStation = villages.find(v => v._id === selectedVillage)?.name,
+        const updatedText = text.replace(/{{names}}/g, accusedList).replace(/{{station}}/g,policeStation);
 
         setModifiedHTML(updatedText);
       })
