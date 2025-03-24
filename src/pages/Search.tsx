@@ -364,7 +364,7 @@ function Search() {
 
         // const updatedText = text.replace(/{{names}}/g, accusedList);
          // const updatedText = text.replace(/{{names}}/g, accusedList).replace(/{{station}}/g,selectedVillage);
-        const policeStation = villages.find(v => v._id === selectedVillage)?.name,
+        const policeStation = villages.find(v => v._id === selectedVillage)?.name;
         const updatedText = text.replace(/{{names}}/g, accusedList).replace(/{{station}}/g,policeStation);
 
         setModifiedHTML(updatedText);
